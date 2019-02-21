@@ -1,4 +1,4 @@
-.. Copyright 2018 FUJITSU LIMITED
+.. Copyright FUJITSU LIMITED 2016-2019
 
 .. _osTemplate-getAll:
 
@@ -29,7 +29,7 @@ Security Summary
 URI Parameters
 ~~~~~~~~~~~~~~
 
-* ``id`` (required): the id of the :ref:`distribution-object`
+* ``id`` (required): the id of the :ref:`distribprofile-object`
 
 HTTP Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

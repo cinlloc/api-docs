@@ -1,4 +1,4 @@
-.. Copyright 2018 FUJITSU LIMITED
+.. Copyright FUJITSU LIMITED 2016-2019
 
 .. _softwareBundleImport-upload:
 
@@ -43,7 +43,7 @@ Example Request
 .. code-block:: bash
 
 	curl "https://uforge.example.com/api/users/{uid}/bundleimports/{sbid}/uploads" -X POST \
-	-u USER_LOGIN:PASSWORD -H "Accept: application/xml" -H "Content-type: application/xml" --data-binary "@binaryFilePath"
+	-u USER_LOGIN:PASSWORD -H "Accept: application/xml"-H "Content-type: application/xml" --data-binary "@binaryFilePath"
 
 .. seealso::
 
@@ -73,6 +73,7 @@ Example Request
 	 * :ref:`mySoftwareLogo-downloadFile`
 	 * :ref:`mySoftwareLogo-upload`
 	 * :ref:`mySoftwareRestrictionOS-evaluate`
+	 * :ref:`mySoftwareRestrictionOS-getAll`
 	 * :ref:`mySoftwareRestriction-update`
 	 * :ref:`mySoftwareUsage-getAll`
 	 * :ref:`mySoftware-availableForImage`
