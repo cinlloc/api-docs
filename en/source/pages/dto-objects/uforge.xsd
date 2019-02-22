@@ -44,6 +44,12 @@
 
     <xs:element name="blueprintDeployment" type="BlueprintDeployment"/>
 
+    <xs:element name="blueprintPipeline" type="BlueprintPipeline"/>
+
+    <xs:element name="blueprintPipelines" type="BlueprintPipelines"/>
+
+    <xs:element name="blueprintPredeploy" type="BlueprintPredeploy"/>
+
     <xs:element name="blueprintSummary" type="BlueprintSummary"/>
 
     <xs:element name="blueprintsSummaries" type="BlueprintsSummaries"/>
@@ -94,6 +100,10 @@
 
     <xs:element name="confMgmtPlatforms" type="ConfMgmtPlatforms"/>
 
+    <xs:element name="containerTemplate" type="ContainerTemplate"/>
+
+    <xs:element name="containerTemplates" type="ContainerTemplates"/>
+
     <xs:element name="credAccount" type="CredAccount"/>
 
     <xs:element name="credAccountResource" type="CredAccountResource"/>
@@ -105,6 +115,8 @@
     <xs:element name="deployment" type="Deployment"/>
 
     <xs:element name="deployments" type="Deployments"/>
+
+    <xs:element name="directoryStructure" type="DirectoryStructure"/>
 
     <xs:element name="disk" type="Disk"/>
 
@@ -192,8 +204,6 @@
 
     <xs:element name="migrations" type="Migrations"/>
 
-    <xs:element name="migrationStage" type="MigrationStage"/>
-
     <xs:element name="milestone" type="Milestone"/>
 
     <xs:element name="milestones" type="Milestones"/>
@@ -246,6 +256,8 @@
 
     <xs:element name="pipeline" type="Pipeline"/>
 
+    <xs:element name="pipelines" type="Pipelines"/>
+
     <xs:element name="pkgGroup" type="PkgGroup"/>
 
     <xs:element name="pkgUpdateInfoList" type="PkgUpdateInfoList"/>
@@ -289,6 +301,8 @@
     <xs:element name="scan" type="Scan"/>
 
     <xs:element name="scanCompare" type="ScanCompare"/>
+
+    <xs:element name="scannedDirectory" type="ScannedDirectory"/>
 
     <xs:element name="scanImport" type="ScanImport"/>
 
@@ -618,6 +632,12 @@
         <xs:complexContent>
             <xs:extension base="UForgeObject">
                 <xs:sequence>
+                    <xs:element name="uuid" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the uuid of the object</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+
                     <xs:element name="applianceExports" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation xml:lang="en">a list of :ref:`applianceexport-object` objects holding meta-data information for each time
@@ -1401,8 +1421,8 @@
     <xs:complexType name="Blueprint">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-                Describes a blueprint template.
-                A blueprint template modelizes a set of :ref:`blueprintService-object` and the information required to deploy these services
+                Describes a blueprint.
+                A blueprint modelizes a set of :ref:`blueprintService-object` and the information required to deploy these services
                 on different nodes in a container or cloud environment.
             </xsd:documentation>
         </xsd:annotation>
@@ -1434,6 +1454,11 @@
                             <xsd:documentation xml:lang="en">the description of the blueprint</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
+                    <xs:element name="yaml" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the blueprint yaml content</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
                     <xs:element name="deployUri" type="xs:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation xml:lang="en">the uri resource to deploy the blueprint</xsd:documentation>
@@ -1443,6 +1468,26 @@
                         <xs:complexType>
                             <xs:sequence>
                                 <xs:element name="blueprintService" type="BlueprintService" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="predeployUri" type="xs:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the uri resource to retrieve BlueprintPredeploy</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="prepareUri" type="xs:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the uri resource to launch a pipeline based on this blueprint</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="pipelines">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the list of Pipelines used to prepare this blueprint</xsd:documentation>
+                        </xsd:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="pipeline" type="Pipeline" minOccurs="0" maxOccurs="unbounded"/>
                             </xs:sequence>
                         </xs:complexType>
                     </xs:element>
@@ -1470,7 +1515,7 @@
     <xs:complexType name="BlueprintDeployment">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-                Provides the information required to deploy a blueprint template.
+                Provides the information required to deploy a blueprint.
             </xsd:documentation>
         </xsd:annotation>
         <xs:complexContent>
@@ -1494,7 +1539,7 @@
     <xs:complexType name="BlueprintDeploymentAws">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-                Provides the information required to deploy a blueprint template to the Amazon Web Services (AWS) environment.
+                Provides the information required to deploy a blueprint to the Amazon Web Services (AWS) environment.
             </xsd:documentation>
         </xsd:annotation>
         <xs:complexContent>
@@ -1510,6 +1555,135 @@
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:complexType name="BlueprintPipeline" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Holds the general information on the preparation of a blueprint to a target cloud environment.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xs:complexContent>
+            <xs:extension base="Pipeline">
+                <xs:sequence>
+                    <xs:element name="blueprintUri" type="xs:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the blueprint uri related to this preparation</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="credAccountUri" type="xs:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the uri of the cloud account used by this preparation</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="BlueprintPipelineAws">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Holds the information on the preparation of a blueprint to the Amazon Web Services (AWS) environment.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xs:complexContent>
+            <xs:extension base="BlueprintPipeline">
+                <xs:sequence>
+                    <xs:element name="region" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the region where the blueprint is prepared</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="BlueprintPipelines">
+        <xs:complexContent>
+            <xs:extension base="UForgeObjects">
+                <xs:sequence>
+                    <xs:element name="blueprintPipelines" minOccurs="0">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="blueprintPipeline" type="BlueprintPipeline" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="BlueprintPredeploy">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Provides the information required to know the status of the appliances related to a blueprint.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xs:sequence>
+            <xs:element name="readyAppliances">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">the list of appliances that are ready</xsd:documentation>
+                </xsd:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="readyAppliances" type="Appliance" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="publicationOngoingAppliances">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">the list of appliances having a publication ongoing</xsd:documentation>
+                </xsd:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="publicationOngoingAppliances" type="Appliance" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="nonPublishedAppliances">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">the list of appliances that are not published</xsd:documentation>
+                </xsd:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="nonPublishedAppliances" type="Appliance" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="nonGeneratedAppliances">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">the list of appliances that are not generated</xsd:documentation>
+                </xsd:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="nonGeneratedAppliances" type="Appliance" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="generationOngoingAppliances">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">the list of appliances having an image generation ongoing</xsd:documentation>
+                </xsd:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="generationOngoingAppliances" type="Appliance" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="interactiveProfileAppliances">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">the list of appliances having an interactive profile</xsd:documentation>
+                </xsd:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="interactiveProfileAppliances" type="Appliance" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:complexType name="BlueprintService">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -1520,21 +1694,6 @@
             <xs:element name="serviceId" type="xs:string">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">the id of this blueprint service. It can be used in ochestrator configuration, see blueprints example provided in UForge user guide documentation for details.</xsd:documentation>
-                </xsd:annotation>
-            </xs:element>
-            <xs:element name="minMemory" type="xs:integer" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">the minimal memory required for this blueprint service</xsd:documentation>
-                </xsd:annotation>
-            </xs:element>
-            <xs:element name="minCores" type="xs:integer" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">the minimal number of cores required for this blueprint service</xsd:documentation>
-                </xsd:annotation>
-            </xs:element>
-            <xs:element name="config" type="xs:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">the extra configuration for this blueprint service</xsd:documentation>
                 </xsd:annotation>
             </xs:element>
             <xs:element name="applianceSummary" type="ApplianceSummary">
@@ -2722,6 +2881,79 @@
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:complexType name="ContainerTemplate">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Holds all the meta-data of a containerTemplate.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xs:complexContent>
+            <xs:extension base="UForgeObject">
+                <xs:sequence>
+                    <xs:element name="uri" type="xs:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the uri of this container template</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="softwareBundle" type="SoftwareBundle" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the software bundle from which the container template has been created</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="distribution" type="Distribution" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the distribution on which the container template is based</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="images" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the list of images generated from the container template</xsd:documentation>
+                        </xsd:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="image" type="Image" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="imagesUri" type="xs:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the uri to retrieve images generated from the container template</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="formatsUri" type="xs:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the uri resource to retrieve all the target formats compatible with this container template</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="ContainerTemplates">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Provides a list of :ref:`ContainerTemplate-object` objects.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xs:complexContent>
+            <xs:extension base="UForgeObjects">
+                <xs:sequence>
+                    <xs:element name="containerTemplates" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the list of :ref:`ContainerTemplate-object` objects</xsd:documentation>
+                        </xsd:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="containerTemplate" type="ContainerTemplate" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
     <xs:complexType name="CredAccount" abstract="true">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -2914,20 +3146,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xs:complexContent>
-            <xs:extension base="CredAccountCert">
-                <xs:sequence>
-                    <xs:element name="login" type="xs:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation xml:lang="en">the user login name to use</xsd:documentation>
-                        </xsd:annotation>
-                    </xs:element>
-                    <xs:element name="certPassword" type="xs:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation xml:lang="en">the account password to use</xsd:documentation>
-                        </xsd:annotation>
-                    </xs:element>
-                </xs:sequence>
-            </xs:extension>
+            <xs:extension base="CredAccountCert"/>
         </xs:complexContent>
     </xs:complexType>
 
@@ -3331,7 +3550,7 @@
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">the deployment source (Blueprint, Appliance or Scan)</xsd:documentation>
                 </xsd:annotation>
-           </xs:element>
+            </xs:element>
             <xs:sequence>
                 <xs:element name="instances" minOccurs="0">
                     <xsd:annotation>
@@ -4327,7 +4546,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xs:complexContent>
-            <xs:extension base="MigrationStage">
+            <xs:extension base="Stage">
                 <xs:sequence>
                     <xs:element name="image" type="Image" minOccurs="0">
                         <xsd:annotation>
@@ -4337,6 +4556,11 @@
                     <xs:element name="imageUri" type="xs:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation xml:lang="en">the uri resource of the image generated</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="sourceTemplateId" type="xs:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the id of the source template if there is one</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
                 </xs:sequence>
@@ -4354,9 +4578,9 @@
         <xs:complexContent>
             <xs:extension base="UForgeUploadObject">
                 <xs:sequence>
-                    <xs:element name="applianceUri" type="xs:anyURI" minOccurs="0">
+                    <xs:element name="parentUri" type="xs:anyURI" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation xml:lang="en">the uri resource of the appliance template this machine image was generated from</xsd:documentation>
+                            <xsd:documentation xml:lang="en">the uri resource of the parent object this machine image was generated from</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
                     <xs:element name="basePublishImagesUri" type="xs:anyURI" minOccurs="0">
@@ -4571,6 +4795,7 @@
                                 <xs:enumeration value="kvm"/>
                                 <xs:enumeration value="k5vmdk"/>
                                 <xs:enumeration value="lxc"/>
+                                <xs:enumeration value="openshift"/>
                                 <xs:enumeration value="openstackqcow2"/>
                                 <xs:enumeration value="openstackvdi"/>
                                 <xs:enumeration value="openstackvhd"/>
@@ -4970,456 +5195,10 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
-                    <xs:element name="timezone" minOccurs="0">
+                    <xs:element name="timezone" minOccurs="0" type="xs:string">
                         <xsd:annotation>
                             <xsd:documentation xml:lang="en">the timezone to set. Only used if ``timezoneAuto == true``</xsd:documentation>
                         </xsd:annotation>
-                        <xs:simpleType>
-                            <xs:restriction base="xs:string">
-                                <xs:enumeration value="Africa/Abidjan"/>
-                                <xs:enumeration value="Africa/Accra"/>
-                                <xs:enumeration value="Africa/Addis_Ababa"/>
-                                <xs:enumeration value="Africa/Algiers"/>
-                                <xs:enumeration value="Africa/Asmara"/>
-                                <xs:enumeration value="Africa/Bamako"/>
-                                <xs:enumeration value="Africa/Bangui"/>
-                                <xs:enumeration value="Africa/Banjul"/>
-                                <xs:enumeration value="Africa/Bissau"/>
-                                <xs:enumeration value="Africa/Blantyre"/>
-                                <xs:enumeration value="Africa/Brazzaville"/>
-                                <xs:enumeration value="Africa/Bujumbura"/>
-                                <xs:enumeration value="Africa/Cairo"/>
-                                <xs:enumeration value="Africa/Casablanca"/>
-                                <xs:enumeration value="Africa/Ceuta"/>
-                                <xs:enumeration value="Africa/Conakry"/>
-                                <xs:enumeration value="Africa/Dakar"/>
-                                <xs:enumeration value="Africa/Dar_es_Salaam"/>
-                                <xs:enumeration value="Africa/Djibouti"/>
-                                <xs:enumeration value="Africa/Douala"/>
-                                <xs:enumeration value="Africa/El_Aaiun"/>
-                                <xs:enumeration value="Africa/Freetown"/>
-                                <xs:enumeration value="Africa/Gaborone"/>
-                                <xs:enumeration value="Africa/Harare"/>
-                                <xs:enumeration value="Africa/Johannesburg"/>
-                                <xs:enumeration value="Africa/Kampala"/>
-                                <xs:enumeration value="Africa/Khartoum"/>
-                                <xs:enumeration value="Africa/Kigali"/>
-                                <xs:enumeration value="Africa/Kinshasa"/>
-                                <xs:enumeration value="Africa/Lagos"/>
-                                <xs:enumeration value="Africa/Libreville"/>
-                                <xs:enumeration value="Africa/Lome"/>
-                                <xs:enumeration value="Africa/Luanda"/>
-                                <xs:enumeration value="Africa/Lubumbashi"/>
-                                <xs:enumeration value="Africa/Lusaka"/>
-                                <xs:enumeration value="Africa/Malabo"/>
-                                <xs:enumeration value="Africa/Maputo"/>
-                                <xs:enumeration value="Africa/Maseru"/>
-                                <xs:enumeration value="Africa/Mbabane"/>
-                                <xs:enumeration value="Africa/Mogadishu"/>
-                                <xs:enumeration value="Africa/Monrovia"/>
-                                <xs:enumeration value="Africa/Nairobi"/>
-                                <xs:enumeration value="Africa/Ndjamena"/>
-                                <xs:enumeration value="Africa/Niamey"/>
-                                <xs:enumeration value="Africa/Nouakchott"/>
-                                <xs:enumeration value="Africa/Ouagadougou"/>
-                                <xs:enumeration value="Africa/Porto-Novo"/>
-                                <xs:enumeration value="Africa/Sao_Tome"/>
-                                <xs:enumeration value="Africa/Tripoli"/>
-                                <xs:enumeration value="Africa/Tunis"/>
-                                <xs:enumeration value="Africa/Windhoek"/>
-                                <xs:enumeration value="America/Adak"/>
-                                <xs:enumeration value="America/Anchorage"/>
-                                <xs:enumeration value="America/Anguilla"/>
-                                <xs:enumeration value="America/Antigua"/>
-                                <xs:enumeration value="America/Araguaina"/>
-                                <xs:enumeration value="America/Argentina/Buenos_Aires"/>
-                                <xs:enumeration value="America/Argentina/Catamarca"/>
-                                <xs:enumeration value="America/Argentina/Cordoba"/>
-                                <xs:enumeration value="America/Argentina/Jujuy"/>
-                                <xs:enumeration value="America/Argentina/La_Rioja"/>
-                                <xs:enumeration value="America/Argentina/Mendoza"/>
-                                <xs:enumeration value="America/Argentina/Rio_Gallegos"/>
-                                <xs:enumeration value="America/Argentina/Salta"/>
-                                <xs:enumeration value="America/Argentina/San_Juan"/>
-                                <xs:enumeration value="America/Argentina/San_Luis"/>
-                                <xs:enumeration value="America/Argentina/Tucuman"/>
-                                <xs:enumeration value="America/Argentina/Ushuaia"/>
-                                <xs:enumeration value="America/Aruba"/>
-                                <xs:enumeration value="America/Asuncion"/>
-                                <xs:enumeration value="America/Atikokan"/>
-                                <xs:enumeration value="America/Bahia"/>
-                                <xs:enumeration value="America/Bahia_Banderas"/>
-                                <xs:enumeration value="America/Barbados"/>
-                                <xs:enumeration value="America/Belem"/>
-                                <xs:enumeration value="America/Belize"/>
-                                <xs:enumeration value="America/Blanc-Sablon"/>
-                                <xs:enumeration value="America/Boa_Vista"/>
-                                <xs:enumeration value="America/Bogota"/>
-                                <xs:enumeration value="America/Boise"/>
-                                <xs:enumeration value="America/Cambridge_Bay"/>
-                                <xs:enumeration value="America/Campo_Grande"/>
-                                <xs:enumeration value="America/Cancun"/>
-                                <xs:enumeration value="America/Caracas"/>
-                                <xs:enumeration value="America/Cayenne"/>
-                                <xs:enumeration value="America/Cayman"/>
-                                <xs:enumeration value="America/Chicago"/>
-                                <xs:enumeration value="America/Chihuahua"/>
-                                <xs:enumeration value="America/Costa_Rica"/>
-                                <xs:enumeration value="America/Cuiaba"/>
-                                <xs:enumeration value="America/Curacao"/>
-                                <xs:enumeration value="America/Danmarkshavn"/>
-                                <xs:enumeration value="America/Dawson"/>
-                                <xs:enumeration value="America/Dawson_Creek"/>
-                                <xs:enumeration value="America/Denver"/>
-                                <xs:enumeration value="America/Detroit"/>
-                                <xs:enumeration value="America/Dominica"/>
-                                <xs:enumeration value="America/Edmonton"/>
-                                <xs:enumeration value="America/Eirunepe"/>
-                                <xs:enumeration value="America/El_Salvador"/>
-                                <xs:enumeration value="America/Fortaleza"/>
-                                <xs:enumeration value="America/Glace_Bay"/>
-                                <xs:enumeration value="America/Godthab"/>
-                                <xs:enumeration value="America/Goose_Bay"/>
-                                <xs:enumeration value="America/Grand_Turk"/>
-                                <xs:enumeration value="America/Grenada"/>
-                                <xs:enumeration value="America/Guadeloupe"/>
-                                <xs:enumeration value="America/Guatemala"/>
-                                <xs:enumeration value="America/Guayaquil"/>
-                                <xs:enumeration value="America/Guyana"/>
-                                <xs:enumeration value="America/Halifax"/>
-                                <xs:enumeration value="America/Havana"/>
-                                <xs:enumeration value="America/Hermosillo"/>
-                                <xs:enumeration value="America/Indiana/Indianapolis"/>
-                                <xs:enumeration value="America/Indiana/Knox"/>
-                                <xs:enumeration value="America/Indiana/Marengo"/>
-                                <xs:enumeration value="America/Indiana/Petersburg"/>
-                                <xs:enumeration value="America/Indiana/Tell_City"/>
-                                <xs:enumeration value="America/Indiana/Vevay"/>
-                                <xs:enumeration value="America/Indiana/Vincennes"/>
-                                <xs:enumeration value="America/Indiana/Winamac"/>
-                                <xs:enumeration value="America/Inuvik"/>
-                                <xs:enumeration value="America/Iqaluit"/>
-                                <xs:enumeration value="America/Jamaica"/>
-                                <xs:enumeration value="America/Juneau"/>
-                                <xs:enumeration value="America/Kentucky/Louisville"/>
-                                <xs:enumeration value="America/Kentucky/Monticello"/>
-                                <xs:enumeration value="America/La_Paz"/>
-                                <xs:enumeration value="America/Lima"/>
-                                <xs:enumeration value="America/Los_Angeles"/>
-                                <xs:enumeration value="America/Maceio"/>
-                                <xs:enumeration value="America/Managua"/>
-                                <xs:enumeration value="America/Manaus"/>
-                                <xs:enumeration value="America/Marigot"/>
-                                <xs:enumeration value="America/Martinique"/>
-                                <xs:enumeration value="America/Matamoros"/>
-                                <xs:enumeration value="America/Mazatlan"/>
-                                <xs:enumeration value="America/Menominee"/>
-                                <xs:enumeration value="America/Merida"/>
-                                <xs:enumeration value="America/Mexico_City"/>
-                                <xs:enumeration value="America/Miquelon"/>
-                                <xs:enumeration value="America/Moncton"/>
-                                <xs:enumeration value="America/Monterrey"/>
-                                <xs:enumeration value="America/Montevideo"/>
-                                <xs:enumeration value="America/Montreal"/>
-                                <xs:enumeration value="America/Montserrat"/>
-                                <xs:enumeration value="America/Nassau"/>
-                                <xs:enumeration value="America/New_York"/>
-                                <xs:enumeration value="America/Nipigon"/>
-                                <xs:enumeration value="America/Nome"/>
-                                <xs:enumeration value="America/Noronha"/>
-                                <xs:enumeration value="America/North_Dakota/Beulah"/>
-                                <xs:enumeration value="America/North_Dakota/Center"/>
-                                <xs:enumeration value="America/North_Dakota/New_Salem"/>
-                                <xs:enumeration value="America/Ojinaga"/>
-                                <xs:enumeration value="America/Panama"/>
-                                <xs:enumeration value="America/Pangnirtung"/>
-                                <xs:enumeration value="America/Paramaribo"/>
-                                <xs:enumeration value="America/Phoenix"/>
-                                <xs:enumeration value="America/Port-au-Prince"/>
-                                <xs:enumeration value="America/Port_of_Spain"/>
-                                <xs:enumeration value="America/Porto_Velho"/>
-                                <xs:enumeration value="America/Puerto_Rico"/>
-                                <xs:enumeration value="America/Rainy_River"/>
-                                <xs:enumeration value="America/Rankin_Inlet"/>
-                                <xs:enumeration value="America/Recife"/>
-                                <xs:enumeration value="America/Regina"/>
-                                <xs:enumeration value="America/Resolute"/>
-                                <xs:enumeration value="America/Rio_Branco"/>
-                                <xs:enumeration value="America/Santa_Isabel"/>
-                                <xs:enumeration value="America/Santarem"/>
-                                <xs:enumeration value="America/Santiago"/>
-                                <xs:enumeration value="America/Santo_Domingo"/>
-                                <xs:enumeration value="America/Sao_Paulo"/>
-                                <xs:enumeration value="America/Scoresbysund"/>
-                                <xs:enumeration value="America/Shiprock"/>
-                                <xs:enumeration value="America/St_Barthelemy"/>
-                                <xs:enumeration value="America/St_Johns"/>
-                                <xs:enumeration value="America/St_Kitts"/>
-                                <xs:enumeration value="America/St_Lucia"/>
-                                <xs:enumeration value="America/St_Thomas"/>
-                                <xs:enumeration value="America/St_Vincent"/>
-                                <xs:enumeration value="America/Swift_Current"/>
-                                <xs:enumeration value="America/Tegucigalpa"/>
-                                <xs:enumeration value="America/Thule"/>
-                                <xs:enumeration value="America/Thunder_Bay"/>
-                                <xs:enumeration value="America/Tijuana"/>
-                                <xs:enumeration value="America/Toronto"/>
-                                <xs:enumeration value="America/Tortola"/>
-                                <xs:enumeration value="America/Vancouver"/>
-                                <xs:enumeration value="America/Whitehorse"/>
-                                <xs:enumeration value="America/Winnipeg"/>
-                                <xs:enumeration value="America/Yakutat"/>
-                                <xs:enumeration value="America/Yellowknife"/>
-                                <xs:enumeration value="Antarctica/Casey"/>
-                                <xs:enumeration value="Antarctica/Davis"/>
-                                <xs:enumeration value="Antarctica/DumontDUrville"/>
-                                <xs:enumeration value="Antarctica/Macquarie"/>
-                                <xs:enumeration value="Antarctica/Mawson"/>
-                                <xs:enumeration value="Antarctica/McMurdo"/>
-                                <xs:enumeration value="Antarctica/Palmer"/>
-                                <xs:enumeration value="Antarctica/Rothera"/>
-                                <xs:enumeration value="Antarctica/South_Pole"/>
-                                <xs:enumeration value="Antarctica/Syowa"/>
-                                <xs:enumeration value="Antarctica/Vostok"/>
-                                <xs:enumeration value="Arctic/Longyearbyen"/>
-                                <xs:enumeration value="Asia/Aden"/>
-                                <xs:enumeration value="Asia/Almaty"/>
-                                <xs:enumeration value="Asia/Amman"/>
-                                <xs:enumeration value="Asia/Anadyr"/>
-                                <xs:enumeration value="Asia/Aqtau"/>
-                                <xs:enumeration value="Asia/Aqtobe"/>
-                                <xs:enumeration value="Asia/Ashgabat"/>
-                                <xs:enumeration value="Asia/Baghdad"/>
-                                <xs:enumeration value="Asia/Bahrain"/>
-                                <xs:enumeration value="Asia/Baku"/>
-                                <xs:enumeration value="Asia/Bangkok"/>
-                                <xs:enumeration value="Asia/Beirut"/>
-                                <xs:enumeration value="Asia/Bishkek"/>
-                                <xs:enumeration value="Asia/Brunei"/>
-                                <xs:enumeration value="Asia/Choibalsan"/>
-                                <xs:enumeration value="Asia/Chongqing"/>
-                                <xs:enumeration value="Asia/Colombo"/>
-                                <xs:enumeration value="Asia/Damascus"/>
-                                <xs:enumeration value="Asia/Dhaka"/>
-                                <xs:enumeration value="Asia/Dili"/>
-                                <xs:enumeration value="Asia/Dubai"/>
-                                <xs:enumeration value="Asia/Dushanbe"/>
-                                <xs:enumeration value="Asia/Gaza"/>
-                                <xs:enumeration value="Asia/Harbin"/>
-                                <xs:enumeration value="Asia/Ho_Chi_Minh"/>
-                                <xs:enumeration value="Asia/Hong_Kong"/>
-                                <xs:enumeration value="Asia/Hovd"/>
-                                <xs:enumeration value="Asia/Irkutsk"/>
-                                <xs:enumeration value="Asia/Jakarta"/>
-                                <xs:enumeration value="Asia/Jayapura"/>
-                                <xs:enumeration value="Asia/Jerusalem"/>
-                                <xs:enumeration value="Asia/Kabul"/>
-                                <xs:enumeration value="Asia/Kamchatka"/>
-                                <xs:enumeration value="Asia/Karachi"/>
-                                <xs:enumeration value="Asia/Kashgar"/>
-                                <xs:enumeration value="Asia/Kathmandu"/>
-                                <xs:enumeration value="Asia/Kolkata"/>
-                                <xs:enumeration value="Asia/Krasnoyarsk"/>
-                                <xs:enumeration value="Asia/Kuala_Lumpur"/>
-                                <xs:enumeration value="Asia/Kuching"/>
-                                <xs:enumeration value="Asia/Kuwait"/>
-                                <xs:enumeration value="Asia/Macau"/>
-                                <xs:enumeration value="Asia/Magadan"/>
-                                <xs:enumeration value="Asia/Makassar"/>
-                                <xs:enumeration value="Asia/Manila"/>
-                                <xs:enumeration value="Asia/Muscat"/>
-                                <xs:enumeration value="Asia/Nicosia"/>
-                                <xs:enumeration value="Asia/Novokuznetsk"/>
-                                <xs:enumeration value="Asia/Novosibirsk"/>
-                                <xs:enumeration value="Asia/Omsk"/>
-                                <xs:enumeration value="Asia/Oral"/>
-                                <xs:enumeration value="Asia/Phnom_Penh"/>
-                                <xs:enumeration value="Asia/Pontianak"/>
-                                <xs:enumeration value="Asia/Pyongyang"/>
-                                <xs:enumeration value="Asia/Qatar"/>
-                                <xs:enumeration value="Asia/Qyzylorda"/>
-                                <xs:enumeration value="Asia/Rangoon"/>
-                                <xs:enumeration value="Asia/Riyadh"/>
-                                <xs:enumeration value="Asia/Sakhalin"/>
-                                <xs:enumeration value="Asia/Samarkand"/>
-                                <xs:enumeration value="Asia/Seoul"/>
-                                <xs:enumeration value="Asia/Shanghai"/>
-                                <xs:enumeration value="Asia/Singapore"/>
-                                <xs:enumeration value="Asia/Taipei"/>
-                                <xs:enumeration value="Asia/Tashkent"/>
-                                <xs:enumeration value="Asia/Tbilisi"/>
-                                <xs:enumeration value="Asia/Tehran"/>
-                                <xs:enumeration value="Asia/Thimphu"/>
-                                <xs:enumeration value="Asia/Tokyo"/>
-                                <xs:enumeration value="Asia/Ulaanbaatar"/>
-                                <xs:enumeration value="Asia/Urumqi"/>
-                                <xs:enumeration value="Asia/Vientiane"/>
-                                <xs:enumeration value="Asia/Vladivostok"/>
-                                <xs:enumeration value="Asia/Yakutsk"/>
-                                <xs:enumeration value="Asia/Yekaterinburg"/>
-                                <xs:enumeration value="Asia/Yerevan"/>
-                                <xs:enumeration value="Atlantic/Azores"/>
-                                <xs:enumeration value="Atlantic/Bermuda"/>
-                                <xs:enumeration value="Atlantic/Canary"/>
-                                <xs:enumeration value="Atlantic/Cape_Verde"/>
-                                <xs:enumeration value="Atlantic/Faroe"/>
-                                <xs:enumeration value="Atlantic/Madeira"/>
-                                <xs:enumeration value="Atlantic/Reykjavik"/>
-                                <xs:enumeration value="Atlantic/South_Georgia"/>
-                                <xs:enumeration value="Atlantic/St_Helena"/>
-                                <xs:enumeration value="Atlantic/Stanley"/>
-                                <xs:enumeration value="Australia/Adelaide"/>
-                                <xs:enumeration value="Australia/Brisbane"/>
-                                <xs:enumeration value="Australia/Broken_Hill"/>
-                                <xs:enumeration value="Australia/Currie"/>
-                                <xs:enumeration value="Australia/Darwin"/>
-                                <xs:enumeration value="Australia/Eucla"/>
-                                <xs:enumeration value="Australia/Hobart"/>
-                                <xs:enumeration value="Australia/Lindeman"/>
-                                <xs:enumeration value="Australia/Lord_Howe"/>
-                                <xs:enumeration value="Australia/Melbourne"/>
-                                <xs:enumeration value="Australia/Perth"/>
-                                <xs:enumeration value="Australia/Sydney"/>
-                                <xs:enumeration value="Europe/Amsterdam"/>
-                                <xs:enumeration value="Europe/Andorra"/>
-                                <xs:enumeration value="Europe/Athens"/>
-                                <xs:enumeration value="Europe/Belgrade"/>
-                                <xs:enumeration value="Europe/Berlin"/>
-                                <xs:enumeration value="Europe/Bratislava"/>
-                                <xs:enumeration value="Europe/Brussels"/>
-                                <xs:enumeration value="Europe/Bucharest"/>
-                                <xs:enumeration value="Europe/Budapest"/>
-                                <xs:enumeration value="Europe/Chisinau"/>
-                                <xs:enumeration value="Europe/Copenhagen"/>
-                                <xs:enumeration value="Europe/Dublin"/>
-                                <xs:enumeration value="Europe/Gibraltar"/>
-                                <xs:enumeration value="Europe/Guernsey"/>
-                                <xs:enumeration value="Europe/Helsinki"/>
-                                <xs:enumeration value="Europe/Isle_of_Man"/>
-                                <xs:enumeration value="Europe/Istanbul"/>
-                                <xs:enumeration value="Europe/Jersey"/>
-                                <xs:enumeration value="Europe/Kaliningrad"/>
-                                <xs:enumeration value="Europe/Kiev"/>
-                                <xs:enumeration value="Europe/Lisbon"/>
-                                <xs:enumeration value="Europe/Ljubljana"/>
-                                <xs:enumeration value="Europe/London"/>
-                                <xs:enumeration value="Europe/Luxembourg"/>
-                                <xs:enumeration value="Europe/Madrid"/>
-                                <xs:enumeration value="Europe/Malta"/>
-                                <xs:enumeration value="Europe/Mariehamn"/>
-                                <xs:enumeration value="Europe/Minsk"/>
-                                <xs:enumeration value="Europe/Monaco"/>
-                                <xs:enumeration value="Europe/Moscow"/>
-                                <xs:enumeration value="Europe/Oslo"/>
-                                <xs:enumeration value="Europe/Paris"/>
-                                <xs:enumeration value="Europe/Podgorica"/>
-                                <xs:enumeration value="Europe/Prague"/>
-                                <xs:enumeration value="Europe/Riga"/>
-                                <xs:enumeration value="Europe/Rome"/>
-                                <xs:enumeration value="Europe/Samara"/>
-                                <xs:enumeration value="Europe/San_Marino"/>
-                                <xs:enumeration value="Europe/Sarajevo"/>
-                                <xs:enumeration value="Europe/Simferopol"/>
-                                <xs:enumeration value="Europe/Skopje"/>
-                                <xs:enumeration value="Europe/Sofia"/>
-                                <xs:enumeration value="Europe/Stockholm"/>
-                                <xs:enumeration value="Europe/Tallinn"/>
-                                <xs:enumeration value="Europe/Tirane"/>
-                                <xs:enumeration value="Europe/Uzhgorod"/>
-                                <xs:enumeration value="Europe/Vaduz"/>
-                                <xs:enumeration value="Europe/Vatican"/>
-                                <xs:enumeration value="Europe/Vienna"/>
-                                <xs:enumeration value="Europe/Vilnius"/>
-                                <xs:enumeration value="Europe/Volgograd"/>
-                                <xs:enumeration value="Europe/Warsaw"/>
-                                <xs:enumeration value="Europe/Zagreb"/>
-                                <xs:enumeration value="Europe/Zaporozhye"/>
-                                <xs:enumeration value="Europe/Zurich"/>
-                                <xs:enumeration value="GMT-14"/>
-                                <xs:enumeration value="GMT-13"/>
-                                <xs:enumeration value="GMT-12"/>
-                                <xs:enumeration value="GMT-11"/>
-                                <xs:enumeration value="GMT-10"/>
-                                <xs:enumeration value="GMT-9"/>
-                                <xs:enumeration value="GMT-8"/>
-                                <xs:enumeration value="GMT-7"/>
-                                <xs:enumeration value="GMT-6"/>
-                                <xs:enumeration value="GMT-5"/>
-                                <xs:enumeration value="GMT-4"/>
-                                <xs:enumeration value="GMT-3"/>
-                                <xs:enumeration value="GMT-2"/>
-                                <xs:enumeration value="GMT-1"/>
-                                <xs:enumeration value="GMT-0"/>
-                                <xs:enumeration value="GMT+0"/>
-                                <xs:enumeration value="GMT0"/>
-                                <xs:enumeration value="GMT+1"/>
-                                <xs:enumeration value="GMT+2"/>
-                                <xs:enumeration value="GMT+3"/>
-                                <xs:enumeration value="GMT+4"/>
-                                <xs:enumeration value="GMT+5"/>
-                                <xs:enumeration value="GMT+6"/>
-                                <xs:enumeration value="GMT+7"/>
-                                <xs:enumeration value="GMT+8"/>
-                                <xs:enumeration value="GMT+9"/>
-                                <xs:enumeration value="GMT+10"/>
-                                <xs:enumeration value="GMT+11"/>
-                                <xs:enumeration value="GMT+12"/>
-                                <xs:enumeration value="UCT"/>
-                                <xs:enumeration value="UTC"/>
-                                <xs:enumeration value="Universal"/>
-                                <xs:enumeration value="Greenwich"/>
-                                <xs:enumeration value="Zulu"/>
-                                <xs:enumeration value="Indian/Antananarivo"/>
-                                <xs:enumeration value="Indian/Chagos"/>
-                                <xs:enumeration value="Indian/Christmas"/>
-                                <xs:enumeration value="Indian/Cocos"/>
-                                <xs:enumeration value="Indian/Comoro"/>
-                                <xs:enumeration value="Indian/Kerguelen"/>
-                                <xs:enumeration value="Indian/Mahe"/>
-                                <xs:enumeration value="Indian/Maldives"/>
-                                <xs:enumeration value="Indian/Mauritius"/>
-                                <xs:enumeration value="Indian/Mayotte"/>
-                                <xs:enumeration value="Indian/Reunion"/>
-                                <xs:enumeration value="Pacific/Apia"/>
-                                <xs:enumeration value="Pacific/Auckland"/>
-                                <xs:enumeration value="Pacific/Chatham"/>
-                                <xs:enumeration value="Pacific/Chuuk"/>
-                                <xs:enumeration value="Pacific/Easter"/>
-                                <xs:enumeration value="Pacific/Efate"/>
-                                <xs:enumeration value="Pacific/Enderbury"/>
-                                <xs:enumeration value="Pacific/Fakaofo"/>
-                                <xs:enumeration value="Pacific/Fiji"/>
-                                <xs:enumeration value="Pacific/Funafuti"/>
-                                <xs:enumeration value="Pacific/Galapagos"/>
-                                <xs:enumeration value="Pacific/Gambier"/>
-                                <xs:enumeration value="Pacific/Guadalcanal"/>
-                                <xs:enumeration value="Pacific/Guam"/>
-                                <xs:enumeration value="Pacific/Honolulu"/>
-                                <xs:enumeration value="Pacific/Johnston"/>
-                                <xs:enumeration value="Pacific/Kiritimati"/>
-                                <xs:enumeration value="Pacific/Kosrae"/>
-                                <xs:enumeration value="Pacific/Kwajalein"/>
-                                <xs:enumeration value="Pacific/Majuro"/>
-                                <xs:enumeration value="Pacific/Marquesas"/>
-                                <xs:enumeration value="Pacific/Midway"/>
-                                <xs:enumeration value="Pacific/Nauru"/>
-                                <xs:enumeration value="Pacific/Niue"/>
-                                <xs:enumeration value="Pacific/Norfolk"/>
-                                <xs:enumeration value="Pacific/Noumea"/>
-                                <xs:enumeration value="Pacific/Pago_Pago"/>
-                                <xs:enumeration value="Pacific/Palau"/>
-                                <xs:enumeration value="Pacific/Pitcairn"/>
-                                <xs:enumeration value="Pacific/Pohnpei"/>
-                                <xs:enumeration value="Pacific/Port_Moresby"/>
-                                <xs:enumeration value="Pacific/Rarotonga"/>
-                                <xs:enumeration value="Pacific/Saipan"/>
-                                <xs:enumeration value="Pacific/Tahiti"/>
-                                <xs:enumeration value="Pacific/Tarawa"/>
-                                <xs:enumeration value="Pacific/Tongatapu"/>
-                                <xs:enumeration value="Pacific/Wake"/>
-                                <xs:enumeration value="Pacific/Wallis"/>
-                            </xs:restriction>
-                        </xs:simpleType>
                     </xs:element>
                     <xs:element name="timezoneAuto" type="xs:boolean" minOccurs="0">
                         <xsd:annotation>
@@ -6106,16 +5885,6 @@
         <xs:complexContent>
             <xs:extension base="Pipeline">
                 <xs:sequence>
-                    <xs:element name="stages" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation xml:lang="en">the list of stages to perform the pipeline (see :ref:`stage-object`)</xsd:documentation>
-                        </xsd:annotation>
-                        <xs:complexType>
-                            <xs:sequence>
-                                <xs:element name="stage" type="MigrationStage" minOccurs="0" maxOccurs="unbounded"/>
-                            </xs:sequence>
-                        </xs:complexType>
-                    </xs:element>
                     <xs:element name="cancellable" type="xs:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation xml:lang="en">a boolean highlighting if the Migration is cancellable or not</xsd:documentation>
@@ -6146,18 +5915,6 @@
                         </xs:complexType>
                     </xs:element>
                 </xs:sequence>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="MigrationStage">
-        <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-                Holds all the meta-data of a stage to perform a migration.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xs:complexContent>
-            <xs:extension base="Stage">
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -6255,6 +6012,11 @@
                     <xs:element name="imported" type="xs:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation xml:lang="en">a boolean highlighting if the MySoftware has been imported (from a scan, an appliance import or a workspace)</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="generationEnabled" type="xs:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">a boolean highlighting if the Software component is able to be generated or not</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
                 </xs:sequence>
@@ -7291,7 +7053,7 @@
                                 <xs:enumeration value="linux-swap"/>
                                 <xs:enumeration value="lvm2"/>
                                 <xs:enumeration value="ntfs"/>
-                                <xs:enumeration value="unformated"/>
+                                <xs:enumeration value="unformatted"/>
                                 <xs:enumeration value="xfs"/>
                                 <xs:enumeration value="reserved"/>
                             </xs:restriction>
@@ -7559,11 +7321,44 @@
                             <xsd:documentation xml:lang="en">the uri of the pipeline</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
+                    <xs:element name="stages" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the list of stages to perform the pipeline (see :ref:`stage-object`)</xsd:documentation>
+                        </xsd:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="stage" type="Stage" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:complexType name="Pipelines">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Provides a list of :ref:`pipeline-object` objects.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xs:complexContent>
+            <xs:extension base="UForgeObjects">
+                <xs:sequence>
+                    <xs:element name="pipelines" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the list of :ref:`pipeline-object` objects</xsd:documentation>
+                        </xsd:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="pipeline" type="Pipeline" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
 
     <xs:complexType name="Pkg">
         <xsd:annotation>
@@ -7919,7 +7714,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xs:complexContent>
-            <xs:extension base="MigrationStage">
+            <xs:extension base="Stage">
                 <xs:sequence>
                     <xs:element name="publishImage" type="PublishImage" minOccurs="0">
                         <xsd:annotation>
@@ -7929,6 +7724,11 @@
                     <xs:element name="publishImageUri" type="xs:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation xml:lang="en">the uri resource of the published image</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="sourceImageId" type="xs:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the id of the source image if there is one</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
                 </xs:sequence>
@@ -8372,7 +8172,24 @@
             </xsd:documentation>
         </xsd:annotation>
         <xs:complexContent>
-            <xs:extension base="PublishImageDocker">
+            <xs:extension base="PublishImage">
+                <xs:sequence>
+                    <xs:element name="namespace" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the namespace to use when registering the machine image</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="repositoryName" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the name to use when registering the machine image</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="tagName" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the tag name to use when registering the machine image</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                </xs:sequence>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -8661,9 +8478,18 @@
                             <xsd:documentation xml:lang="en">the date this repository last received a package update</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
+                    <xs:element name="coreRepository" type="xs:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">
+                                boolean indicating when the repository is mandatory for a distribution to function properly.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
                     <xs:element name="officiallySupported" type="xs:boolean" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation xml:lang="en">boolean indicating whether this repository is officially supported</xsd:documentation>
+                            <xsd:documentation xml:lang="en">
+                                DEPRECATED, will be removed in a future release. Use "coreRepository" instead.
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
                     <xs:element name="distributionsUriList" type="UriList" minOccurs="0">
@@ -9070,7 +8896,6 @@
         </xs:complexContent>
     </xs:complexType>
 
-
     <xs:complexType name="ScannedFile">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -9100,6 +8925,18 @@
                             <xsd:documentation xml:lang="en">a boolean indicating if this file has been received as part of the overlay upload</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
+                    <xs:element name="changeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the change type of the file</xsd:documentation>
+                        </xsd:annotation>
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="added"/>
+                                <xs:enumeration value="deleted"/>
+                                <xs:enumeration value="modified"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -9124,6 +8961,111 @@
                             </xs:sequence>
                         </xs:complexType>
                     </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="DirectoryStructure">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Holds the meta-data of a directory on the file system.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xs:complexContent>
+            <xs:extension base="UForgeObject">
+                <xs:sequence>
+                    <xs:element name="id" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the id of the directory</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="path" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the path of the directory</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="subDirectories" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the list of sub directories</xsd:documentation>
+                        </xsd:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="subDirectory" type="DirectoryStructure" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="ScannedDirectory">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Holds the meta-data of a directory discovered on the file system after a scan process.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xs:complexContent>
+            <xs:extension base="DirectoryStructure">
+                <xs:sequence>
+                    <xs:element name="changeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the change type of the directory</xsd:documentation>
+                        </xsd:annotation>
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="ADD"/>
+                                <xs:enumeration value="DELETE"/>
+                                <xs:enumeration value="CHANGE"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="owner" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the owner of the directory</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+
+                    <xs:element name="group" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the group of the directory</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+
+                    <xs:element name="permissions" type="xs:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the permissions of the directory</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+
+                    <xs:element name="sumAdded" type="xs:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the sum of added files in the directory</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+
+                    <xs:element name="sumChanged" type="xs:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the sum of changed files in the directory</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="sumDeleted" type="xs:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the sum of deleted files in the directory</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
+                    <xs:element name="files" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the list of scanned files in the directorie</xsd:documentation>
+                        </xsd:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="file" type="ScannedFile" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -9413,7 +9355,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xs:complexContent>
-            <xs:extension base="MigrationStage">
+            <xs:extension base="Stage">
                 <xs:sequence>
                     <xs:element name="family" minOccurs="0">
                         <xsd:annotation>
@@ -10011,6 +9953,11 @@
                             <xsd:documentation xml:lang="en">a boolean highlighting if the Software bundle is restricted on target format</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
+                    <xs:element name="containerTemplatesUri" type="xs:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">the uri to retrieve container templates created from the software bundle</xsd:documentation>
+                        </xsd:annotation>
+                    </xs:element>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -10402,7 +10349,7 @@
                     <xs:element name="currency" type="xs:string" minOccurs="0"/>
                     <xs:element name="date" type="xs:dateTime" minOccurs="0"/>
                     <xs:element name="description" type="xs:string" minOccurs="0"/>
-                    <xs:element name="diskSize" type="xs:float" minOccurs="0"/>
+                    <xs:element name="diskSize" type="xs:long" minOccurs="0"/>
                     <xs:element name="distributionId" type="xs:long" minOccurs="0"/>
                     <xs:element name="distributionName" type="xs:string" minOccurs="0"/>
                     <xs:element name="formatId" type="xs:long" minOccurs="0"/>
@@ -10725,6 +10672,7 @@
                                 <xs:enumeration value="google"/>
                                 <xs:enumeration value="cloudstack"/>
                                 <xs:enumeration value="openstack"/>
+                                <xs:enumeration value="openshift"/>
                                 <xs:enumeration value="vclouddirector"/>
                                 <xs:enumeration value="vsphere"/>
                                 <xs:enumeration value="k5"/>
@@ -11100,7 +11048,7 @@
                     </xs:element>
                     <xs:element name="baseBlueprintsUri" type="xs:anyURI" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation xml:lang="en">the uri resource to retrieve the user's blueprint templates</xsd:documentation>
+                            <xsd:documentation xml:lang="en">the uri resource to retrieve the user's blueprint</xsd:documentation>
                         </xsd:annotation>
                     </xs:element>
                     <xs:element name="baseCredAccountsUri" type="xs:anyURI" minOccurs="0">
@@ -11684,7 +11632,6 @@
         </xs:complexContent>
     </xs:complexType>
 
-
     <xs:complexType name="VoteStat">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -12085,5 +12032,4 @@
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
-
 </xs:schema>
